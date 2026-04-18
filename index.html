@@ -178,6 +178,13 @@ var currentZoom = 1;
 var imgNaturalW = 0;
 var imgNaturalH = 0;
 var scaleRatio = 1;
+var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+var CANVAS_FONT = isMobile
+  ? '700 25px "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif'
+  : '700 25px "Microsoft YaHei", "PingFang SC", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif';
+var CANVAS_FONT_VIN = isMobile
+  ? '700 26px "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif'
+  : '700 26px "Microsoft YaHei", "PingFang SC", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif';
 
 var bgImage = document.getElementById('bgImage');
 var wrapper = document.getElementById('canvasWrapper');
@@ -284,7 +291,7 @@ function renderOverlays() {
     div.style.top = (f.y * scaleRatio) + 'px';
     div.style.fontSize = (f.fontSize * scaleRatio) + 'px';
     div.style.color = f.color;
-    div.style.fontFamily = '"' + f.fontFamily + '"';
+    div.style.fontFamily = '"' + f.fontFamily + '", "PingFang SC", "Noto Sans SC", Arial, sans-serif';
     div.style.fontWeight = f.fontWeight;
     div.textContent = f.text || f.label;
     wrapper.appendChild(div);
@@ -320,10 +327,12 @@ function exportImage() {
   // 绘制文字（原始像素坐标）
   for (var i = 0; i < fields.length; i++) {
     var f = fields[i];
-    ctx.font = f.fontWeight + ' ' + f.fontSize + 'px "' + f.fontFamily + '"';
+    // 手机端 Y 坐标微调补偿（手机字体渲染基准线不同）
+    var offsetY = isMobile ? -2 : 0;
+    ctx.font = (f.id === 'f_vin') ? CANVAS_FONT_VIN : CANVAS_FONT;
     ctx.fillStyle = f.color;
     ctx.textBaseline = 'top';
-    ctx.fillText(f.text, f.x, f.y);
+    ctx.fillText(f.text, f.x, f.y + offsetY);
   }
 
   // 导出：将 canvas 转为 data URL，通过导航触发下载
