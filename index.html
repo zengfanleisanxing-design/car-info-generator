@@ -91,7 +91,7 @@ body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #1
 /* 调试面板 - 在输入框下方展开 */
 .debug-panel-overlay {
   margin-top: 6px;
-  padding: 8px 10px;
+  padding: 10px;
   background: rgba(255,255,255,0.92);
   backdrop-filter: blur(8px);
   border-radius: 8px;
@@ -99,26 +99,64 @@ body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #1
   display: none;
 }
 .debug-panel-overlay.open { display: block; }
-.debug-row {
-  display: flex; align-items: center;
-  margin-bottom: 5px; gap: 6px;
+.debug-section {
+  margin-bottom: 8px;
 }
-.debug-row:last-child { margin-bottom: 0; }
-.debug-row label {
-  font-size: 10px; color: #888; font-weight: 600;
-  width: 28px; flex-shrink: 0;
+.debug-section:last-child { margin-bottom: 0; }
+.debug-section-title {
+  font-size: 10px; color: #999; font-weight: 600;
+  margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;
 }
-.debug-row input[type="range"] {
-  flex: 1; height: 3px; accent-color: #e94560;
+/* 方向按钮区域 */
+.debug-dir-row {
+  display: flex; align-items: center; gap: 8px;
 }
-.debug-row .dbval {
+.debug-dir-row .dbval {
+  font-size: 13px; color: #333; font-weight: 700;
+  min-width: 40px; text-align: center; flex-shrink: 0;
+  background: #f5f5f5; border-radius: 4px; padding: 2px 4px;
+}
+.debug-dir-grid {
+  display: grid; grid-template-columns: repeat(3, 32px); grid-template-rows: repeat(3, 32px); gap: 2px; flex-shrink: 0;
+}
+.debug-dir-btn {
+  width: 32px; height: 32px; border: 1px solid #ddd; border-radius: 6px;
+  background: #fff; font-size: 14px; color: #555; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  user-select: none; -webkit-user-select: none;
+  touch-action: manipulation;
+  transition: background 0.1s;
+}
+.debug-dir-btn:active { background: #e94560; color: #fff; border-color: #e94560; }
+.debug-dir-btn.empty { border: none; background: none; cursor: default; }
+/* 字号调节 */
+.debug-size-row {
+  display: flex; align-items: center; gap: 8px;
+}
+.debug-size-btn {
+  width: 36px; height: 36px; border: 1px solid #ddd; border-radius: 6px;
+  background: #fff; font-size: 18px; font-weight: 700; color: #555; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  user-select: none; -webkit-user-select: none;
+  touch-action: manipulation;
+}
+.debug-size-btn:active { background: #e94560; color: #fff; border-color: #e94560; }
+.debug-size-row .dbval {
+  font-size: 13px; color: #333; font-weight: 700;
+  min-width: 30px; text-align: center; flex-shrink: 0;
+}
+/* 颜色行 */
+.debug-color-row {
+  display: flex; align-items: center; gap: 8px;
+}
+.debug-color-row .dbval {
   font-size: 10px; color: #e94560; font-weight: 700;
-  width: 34px; text-align: right; flex-shrink: 0;
+  width: 60px;
 }
-.debug-row input[type="color"] {
-  width: 26px; height: 22px;
-  border: none; border-radius: 4px;
-  cursor: pointer; padding: 0; background: none;
+.debug-color-row input[type="color"] {
+  width: 36px; height: 30px;
+  border: 1px solid #ddd; border-radius: 6px;
+  cursor: pointer; padding: 2px; background: #fff;
 }
 
 .text-overlay.empty { opacity: 0.25; }
@@ -345,22 +383,124 @@ function renderFieldList() {
     dbgPanel.className = 'debug-panel-overlay';
     dbgPanel.id = 'dbp_' + f.id;
     dbgPanel.innerHTML =
-      '<div class="debug-row"><label>X</label><input type="range" min="0" max="1200" step="1" value="' + f.x + '" data-prop="x" data-fid="' + f.id + '"><span class="dbval" id="dv_x_' + f.id + '">' + f.x + '</span></div>' +
-      '<div class="debug-row"><label>Y</label><input type="range" min="0" max="1000" step="1" value="' + f.y + '" data-prop="y" data-fid="' + f.id + '"><span class="dbval" id="dv_y_' + f.id + '">' + f.y + '</span></div>' +
-      '<div class="debug-row"><label>字号</label><input type="range" min="12" max="80" step="1" value="' + f.fontSize + '" data-prop="fontSize" data-fid="' + f.id + '"><span class="dbval" id="dv_fs_' + f.id + '">' + f.fontSize + '</span></div>' +
-      '<div class="debug-row"><label>颜色</label><input type="color" value="' + f.color + '" data-prop="color" data-fid="' + f.id + '"><span class="dbval" id="dv_c_' + f.id + '">' + f.color + '</span></div>';
+      '<div class="debug-section">' +
+        '<div class="debug-section-title">位置</div>' +
+        '<div class="debug-dir-row">' +
+          '<div class="debug-dir-grid">' +
+            '<div class="debug-dir-btn empty"></div>' +
+            '<div class="debug-dir-btn" data-dx="0" data-dy="-1" data-fid="' + f.id + '">&#9650;</div>' +
+            '<div class="debug-dir-btn empty"></div>' +
+            '<div class="debug-dir-btn" data-dx="-1" data-dy="0" data-fid="' + f.id + '">&#9664;</div>' +
+            '<div class="debug-dir-btn empty"></div>' +
+            '<div class="debug-dir-btn" data-dx="1" data-dy="0" data-fid="' + f.id + '">&#9654;</div>' +
+            '<div class="debug-dir-btn empty"></div>' +
+            '<div class="debug-dir-btn" data-dx="0" data-dy="1" data-fid="' + f.id + '">&#9660;</div>' +
+            '<div class="debug-dir-btn empty"></div>' +
+          '</div>' +
+          '<span class="dbval" id="dv_pos_' + f.id + '">' + f.x + ', ' + f.y + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="debug-section">' +
+        '<div class="debug-section-title">字号</div>' +
+        '<div class="debug-size-row">' +
+          '<div class="debug-size-btn" data-step="-1" data-fid="' + f.id + '">&minus;</div>' +
+          '<span class="dbval" id="dv_fs_' + f.id + '">' + f.fontSize + '</span>' +
+          '<div class="debug-size-btn" data-step="1" data-fid="' + f.id + '">&plus;</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="debug-section">' +
+        '<div class="debug-section-title">颜色</div>' +
+        '<div class="debug-color-row">' +
+          '<input type="color" value="' + f.color + '" data-prop="color" data-fid="' + f.id + '">' +
+          '<span class="dbval" id="dv_c_' + f.id + '">' + f.color + '</span>' +
+        '</div>' +
+      '</div>';
     container.appendChild(dbgPanel);
 
-    // 绑定调试滑块
-    var sliders = dbgPanel.querySelectorAll('input[data-prop]');
-    for (var s = 0; s < sliders.length; s++) {
-      sliders[s].addEventListener('input', function() {
+    // 绑定方向按钮 - 支持长按连续移动
+    var dirBtns = dbgPanel.querySelectorAll('.debug-dir-btn[data-dx]');
+    for (var d = 0; d < dirBtns.length; d++) {
+      (function(btn) {
+        var fid = btn.getAttribute('data-fid');
+        var dx = +btn.getAttribute('data-dx');
+        var dy = +btn.getAttribute('data-dy');
+        var timer = null;
+        function step() {
+          var field = fields.find(function(fl) { return fl.id === fid; });
+          if (!field) return;
+          field.x = Math.max(0, field.x + dx);
+          field.y = Math.max(0, field.y + dy);
+          renderOverlays();
+          // 更新输入框位置
+          var ol = document.querySelector('.field-input-overlay input[data-id="' + fid + '"]');
+          if (ol) {
+            var ct = ol.closest('.field-input-overlay');
+            if (ct) {
+              ct.style.left = (field.x * scaleRatio) + 'px';
+              ct.style.top = ((field.y + field.fontSize + 6) * scaleRatio) + 'px';
+            }
+          }
+          // 更新数值显示
+          var vEl = document.getElementById('dv_pos_' + fid);
+          if (vEl) vEl.textContent = field.x + ', ' + field.y;
+        }
+        function startStep(e) {
+          e.preventDefault();
+          step();
+          timer = setInterval(step, 80);
+        }
+        function stopStep() {
+          if (timer) { clearInterval(timer); timer = null; }
+        }
+        btn.addEventListener('mousedown', startStep);
+        btn.addEventListener('touchstart', startStep, { passive: false });
+        btn.addEventListener('mouseup', stopStep);
+        btn.addEventListener('mouseleave', stopStep);
+        btn.addEventListener('touchend', stopStep);
+        btn.addEventListener('touchcancel', stopStep);
+      })(dirBtns[d]);
+    }
+
+    // 绑定字号+-按钮
+    var sizeBtns = dbgPanel.querySelectorAll('.debug-size-btn[data-step]');
+    for (var b = 0; b < sizeBtns.length; b++) {
+      (function(btn) {
+        var fid = btn.getAttribute('data-fid');
+        var step = +btn.getAttribute('data-step');
+        var timer = null;
+        function doStep() {
+          var field = fields.find(function(fl) { return fl.id === fid; });
+          if (!field) return;
+          field.fontSize = Math.max(8, Math.min(120, field.fontSize + step));
+          renderOverlays();
+          var vEl = document.getElementById('dv_fs_' + fid);
+          if (vEl) vEl.textContent = field.fontSize;
+        }
+        function startStep(e) {
+          e.preventDefault();
+          doStep();
+          timer = setInterval(doStep, 120);
+        }
+        function stopStep() {
+          if (timer) { clearInterval(timer); timer = null; }
+        }
+        btn.addEventListener('mousedown', startStep);
+        btn.addEventListener('touchstart', startStep, { passive: false });
+        btn.addEventListener('mouseup', stopStep);
+        btn.addEventListener('mouseleave', stopStep);
+        btn.addEventListener('touchend', stopStep);
+        btn.addEventListener('touchcancel', stopStep);
+      })(sizeBtns[b]);
+    }
+
+    // 绑定颜色选择器
+    var colorInput = dbgPanel.querySelector('input[data-prop="color"]');
+    if (colorInput) {
+      colorInput.addEventListener('input', function() {
         var fid = this.getAttribute('data-fid');
-        var prop = this.getAttribute('data-prop');
-        var val = (this.type === 'color') ? this.value : +this.value;
-        updateField(fid, prop, val, true);
-        var valEl = document.getElementById('dv_' + (prop === 'fontSize' ? 'fs' : prop) + '_' + fid);
-        if (valEl && this.type !== 'color') valEl.textContent = this.value;
+        updateField(fid, 'color', this.value, true);
+        var vEl = document.getElementById('dv_c_' + fid);
+        if (vEl) vEl.textContent = this.value;
       });
     }
 
