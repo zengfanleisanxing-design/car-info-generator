@@ -87,6 +87,47 @@ body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f
 .field-card input[type="text"]::placeholder { color: #ccc; }
 .field-hint { font-size: 11px; color: #bbb; margin-top: 6px; }
 
+/* 调试面板 */
+.debug-toggle {
+  margin-top: 10px;
+  font-size: 11px; color: #aaa;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 4px;
+  user-select: none;
+}
+.debug-toggle:hover { color: #e94560; }
+.debug-panel {
+  margin-top: 10px;
+  padding: 12px;
+  background: #f7f7f9;
+  border-radius: 8px;
+  display: none;
+}
+.debug-panel.open { display: block; }
+.debug-row {
+  display: flex; align-items: center;
+  margin-bottom: 8px; gap: 8px;
+}
+.debug-row:last-child { margin-bottom: 0; }
+.debug-row label {
+  font-size: 11px; color: #888; font-weight: 600;
+  width: 38px; flex-shrink: 0;
+}
+.debug-row input[type="range"] {
+  flex: 1; height: 4px;
+  accent-color: #e94560;
+}
+.debug-row .dbval {
+  font-size: 12px; color: #e94560; font-weight: 700;
+  width: 42px; text-align: right; flex-shrink: 0;
+}
+.debug-row input[type="color"] {
+  width: 36px; height: 28px;
+  border: none; border-radius: 6px;
+  cursor: pointer; padding: 0;
+  background: none;
+}
+
 /* 导出按钮 */
 .btn-bar { padding: 16px; border-top: 1px solid #eee; }
 .btn-export {
@@ -240,6 +281,25 @@ function applyZoom() {
   renderOverlays();
 }
 
+/* ===== 调试面板 ===== */
+function toggleDebug(id) {
+  var panel = document.getElementById('dbp_' + id);
+  if (!panel) return;
+  panel.classList.toggle('open');
+}
+
+function updateField(id, prop, val) {
+  var f = fields.find(function(f) { return f.id === id; });
+  if (!f) return;
+  f[prop] = val;
+  // 颜色值同步显示
+  if (prop === 'color') {
+    var el = document.getElementById('dv_c_' + id);
+    if (el) el.textContent = val;
+  }
+  renderOverlays();
+}
+
 /* ===== 输入处理 ===== */
 function onFieldInput(id, el) {
   var f = fields.find(function(f) { return f.id === id; });
@@ -278,7 +338,27 @@ function renderFieldList() {
     if (f.onlyAlnum) {
       html += '<div class="field-hint">仅限字母和数字，最多 ' + f.maxLen + ' 位</div>';
     }
-    html += '</div>';
+    // 调试面板折叠按钮
+    html += '<div class="debug-toggle" onclick="toggleDebug(\'' + f.id + '\')">⚙️ 调试参数 ▾</div>';
+    html += '<div class="debug-panel" id="dbp_' + f.id + '">';
+    // X 坐标
+    html += '<div class="debug-row"><label>X</label>';
+    html += '<input type="range" min="0" max="1200" step="1" value="' + f.x + '" oninput="updateField(\'' + f.id + '\',\'x\',+this.value);document.getElementById(\'dv_x_' + f.id + '\').textContent=this.value">';
+    html += '<span class="dbval" id="dv_x_' + f.id + '">' + f.x + '</span></div>';
+    // Y 坐标
+    html += '<div class="debug-row"><label>Y</label>';
+    html += '<input type="range" min="0" max="1000" step="1" value="' + f.y + '" oninput="updateField(\'' + f.id + '\',\'y\',+this.value);document.getElementById(\'dv_y_' + f.id + '\').textContent=this.value">';
+    html += '<span class="dbval" id="dv_y_' + f.id + '">' + f.y + '</span></div>';
+    // 字号
+    html += '<div class="debug-row"><label>字号</label>';
+    html += '<input type="range" min="12" max="80" step="1" value="' + f.fontSize + '" oninput="updateField(\'' + f.id + '\',\'fontSize\',+this.value);document.getElementById(\'dv_fs_' + f.id + '\').textContent=this.value">';
+    html += '<span class="dbval" id="dv_fs_' + f.id + '">' + f.fontSize + '</span></div>';
+    // 颜色
+    html += '<div class="debug-row"><label>颜色</label>';
+    html += '<input type="color" value="' + f.color + '" oninput="updateField(\'' + f.id + '\',\'color\',this.value)">';
+    html += '<span class="dbval" id="dv_c_' + f.id + '">' + f.color + '</span></div>';
+    html += '</div>'; // end debug-panel
+    html += '</div>'; // end field-card
   }
   list.innerHTML = html;
 }
@@ -329,18 +409,16 @@ function exportImage() {
   // 绘制底图（原始分辨率）
   ctx.drawImage(bgImage, 0, 0, imgNaturalW, imgNaturalH);
 
-  // 绘制文字（原始像素坐标）
+  // 绘制文字（原始像素坐标，使用内嵌字体）
   for (var i = 0; i < fields.length; i++) {
     var f = fields[i];
-    // 手机端 Y 坐标微调补偿（手机字体渲染基准线不同）
-    var offsetY = 0; // 使用内嵌字体，无需补偿
-    ctx.font = (f.id === 'f_vin') ? CANVAS_FONT_VIN : CANVAS_FONT;
+    ctx.font = f.fontWeight + ' ' + f.fontSize + 'px "MSYaHeiBold", "' + f.fontFamily + '", "PingFang SC", sans-serif';
     ctx.fillStyle = f.color;
     ctx.textBaseline = 'top';
-    ctx.fillText(f.text, f.x, f.y + offsetY);
+    ctx.fillText(f.text, f.x, f.y);
   }
 
-  // 导出：将 canvas 转为 data URL，通过导航触发下载
+  // 导出
   try {
     var dataUrl = canvas.toDataURL('image/png');
     var link = document.createElement('a');
@@ -351,7 +429,6 @@ function exportImage() {
     document.body.removeChild(link);
     showToast('✅ 图片已导出！');
   } catch(e) {
-    // 备用方案：新窗口打开图片（用户可右键另存为）
     try {
       var dataUrl2 = canvas.toDataURL('image/png');
       var win = window.open();
