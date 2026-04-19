@@ -55,55 +55,55 @@ body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #1
   left: 3%; right: 3%;
   top: 60%;
   z-index: 10;
-  display: flex; flex-direction: column; gap: 6px;
+  display: flex; flex-direction: column; gap: 5px;
   pointer-events: none;
 }
 
-/* 每行：标签 + 输入框 + 调试区 */
-.field-row {
-  display: flex; align-items: center; gap: 6px;
+/* 每个字段：输入框在上，调试在下 */
+.field-card {
   pointer-events: auto;
+  display: flex; flex-direction: column; gap: 3px;
 }
 .field-input-bar {
   display: flex; align-items: center; gap: 6px;
   background: rgba(255,255,255,0.92);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(200,200,210,0.4);
-  border-radius: 8px; padding: 7px 10px;
-  flex: 1; min-width: 0;
+  border-radius: 8px; padding: 8px 12px;
+  width: 100%;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .field-input-bar.focused { border-color: #e94560; box-shadow: 0 0 0 2px rgba(233,69,96,0.12); }
-.field-input-label { font-size: 12px; font-weight: 700; color: #e94560; white-space: nowrap; flex-shrink: 0; min-width: 32px; text-align: center; }
+.field-input-label { font-size: 13px; font-weight: 700; color: #e94560; white-space: nowrap; flex-shrink: 0; min-width: 36px; text-align: center; }
 .field-input-bar input {
   border: none; outline: none; background: transparent;
-  font-size: 13px; color: #333; flex: 1; min-width: 0;
+  font-size: 14px; color: #333; flex: 1; min-width: 0;
   font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-weight: 500;
 }
 .field-input-bar input::placeholder { color: #bbb; }
 
-/* 紧凑调试区 */
+/* 紧凑调试区：在输入框下方 */
 .debug-compact {
   display: flex; align-items: center; gap: 4px; flex-shrink: 0;
-  background: rgba(255,255,255,0.88);
+  background: rgba(240,240,245,0.9);
   border: 1px solid rgba(200,200,210,0.3);
-  border-radius: 8px; padding: 4px;
+  border-radius: 6px; padding: 3px 5px;
 }
 .d-btn {
-  width: 26px; height: 26px; border: 1px solid #ddd; border-radius: 5px;
-  background: #fff; font-size: 11px; color: #555; cursor: pointer;
+  width: 24px; height: 24px; border: 1px solid #ddd; border-radius: 4px;
+  background: #fff; font-size: 10px; color: #555; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   user-select: none; -webkit-user-select: none; touch-action: manipulation;
   flex-shrink: 0;
 }
 .d-btn:active { background: #e94560; color: #fff; border-color: #e94560; }
-.d-sep { width: 1px; height: 20px; background: #ddd; flex-shrink: 0; }
+.d-sep { width: 1px; height: 18px; background: #ddd; flex-shrink: 0; }
 .d-color {
-  width: 26px; height: 26px; border: 1px solid #ddd; border-radius: 5px;
+  width: 24px; height: 24px; border: 1px solid #ddd; border-radius: 4px;
   cursor: pointer; padding: 2px; flex-shrink: 0; background: #fff;
 }
-.d-color input { width: 20px; height: 20px; border: none; padding: 0; cursor: pointer; border-radius: 3px; }
-.d-val { font-size: 9px; color: #999; font-weight: 600; min-width: 20px; text-align: center; flex-shrink: 0; }
+.d-color input { width: 18px; height: 18px; border: none; padding: 0; cursor: pointer; border-radius: 3px; }
+.d-val { font-size: 9px; color: #999; font-weight: 600; min-width: 18px; text-align: center; flex-shrink: 0; }
 
 .toast {
   position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(80px);
@@ -184,7 +184,6 @@ function onFieldInput(id, el) {
   renderOverlays();
 }
 
-/* 方向按钮：点击移动，长按连续移动 */
 var _holdTimer = null;
 function startMove(id, dx, dy) {
   moveField(id, dx, dy);
@@ -230,10 +229,10 @@ function renderFieldList() {
   area.innerHTML = '';
   for (var i = 0; i < fields.length; i++) {
     var f = fields[i];
-    var row = document.createElement('div');
-    row.className = 'field-row';
+    var card = document.createElement('div');
+    card.className = 'field-card';
 
-    /* 输入框部分 */
+    /* 输入框：占满整行 */
     var bar = document.createElement('div');
     bar.className = 'field-input-bar';
     var label = document.createElement('span');
@@ -249,13 +248,12 @@ function renderFieldList() {
     input.addEventListener('focus', function() { this.parentElement.classList.add('focused'); });
     input.addEventListener('blur', function() { this.parentElement.classList.remove('focused'); });
     bar.appendChild(label); bar.appendChild(input);
-    row.appendChild(bar);
+    card.appendChild(bar);
 
-    /* 紧凑调试区 */
+    /* 调试区：在输入框下方 */
     var dbg = document.createElement('div');
     dbg.className = 'debug-compact';
 
-    /* 方向按钮 */
     var btns = [
       { ch: '▲', dx: 0, dy: -1 },
       { ch: '▼', dx: 0, dy: 1 },
@@ -266,9 +264,6 @@ function renderFieldList() {
       var b = document.createElement('div');
       b.className = 'd-btn';
       b.innerHTML = btns[j].ch;
-      b.setAttribute('data-fid', f.id);
-      b.setAttribute('data-dx', btns[j].dx);
-      b.setAttribute('data-dy', btns[j].dy);
       (function(btn, dx, dy, fid) {
         btn.addEventListener('mousedown', function(e) { e.preventDefault(); startMove(fid, dx, dy); });
         btn.addEventListener('touchstart', function(e) { e.preventDefault(); startMove(fid, dx, dy); }, {passive:false});
@@ -276,25 +271,20 @@ function renderFieldList() {
       dbg.appendChild(b);
     }
 
-    /* 坐标显示 */
     var coordEl = document.createElement('span');
     coordEl.className = 'd-val';
     coordEl.id = 'dv_' + f.id;
     coordEl.textContent = f.x + ',' + f.y;
     dbg.appendChild(coordEl);
 
-    /* 分隔线 */
     var sep = document.createElement('div');
     sep.className = 'd-sep';
     dbg.appendChild(sep);
 
-    /* 字号 -/+ */
     var sizeMinus = document.createElement('div');
     sizeMinus.className = 'd-btn';
     sizeMinus.textContent = 'A↓';
-    (function(fid) {
-      sizeMinus.addEventListener('click', function() { changeFontSize(fid, -1); });
-    })(f.id);
+    (function(fid) { sizeMinus.addEventListener('click', function() { changeFontSize(fid, -1); }); })(f.id);
     dbg.appendChild(sizeMinus);
 
     var sizeVal = document.createElement('span');
@@ -306,33 +296,26 @@ function renderFieldList() {
     var sizePlus = document.createElement('div');
     sizePlus.className = 'd-btn';
     sizePlus.textContent = 'A↑';
-    (function(fid) {
-      sizePlus.addEventListener('click', function() { changeFontSize(fid, 1); });
-    })(f.id);
+    (function(fid) { sizePlus.addEventListener('click', function() { changeFontSize(fid, 1); }); })(f.id);
     dbg.appendChild(sizePlus);
 
-    /* 分隔线 */
     var sep2 = document.createElement('div');
     sep2.className = 'd-sep';
     dbg.appendChild(sep2);
 
-    /* 颜色选择 */
     var colorWrap = document.createElement('div');
     colorWrap.className = 'd-color';
     var colorInput = document.createElement('input');
     colorInput.type = 'color';
     colorInput.value = f.color;
-    (function(fid) {
-      colorInput.addEventListener('input', function() { changeColor(fid, this.value); });
-    })(f.id);
+    (function(fid) { colorInput.addEventListener('input', function() { changeColor(fid, this.value); }); })(f.id);
     colorWrap.appendChild(colorInput);
     dbg.appendChild(colorWrap);
 
-    row.appendChild(dbg);
-    area.appendChild(row);
+    card.appendChild(dbg);
+    area.appendChild(card);
   }
 
-  /* 全局松开停止移动 */
   document.addEventListener('mouseup', stopMove);
   document.addEventListener('touchend', stopMove);
 }
