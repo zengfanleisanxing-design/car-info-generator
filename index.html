@@ -362,11 +362,7 @@ function exportImage() {
       ctx.fillStyle = f.color;
       ctx.font = '900 ' + f.fontSize + 'px "' + f.fontFamily + '", "PingFang SC-Semibold", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif';
       ctx.textBaseline = 'top';
-      ctx.lineWidth = Math.max(1, Math.round(f.fontSize / 18));
-      ctx.strokeStyle = f.color;
-      ctx.lineJoin = 'round';
       var txt = f.toUpper ? f.text.toUpperCase() : f.text;
-      ctx.strokeText(txt, f.x, f.y);
       ctx.fillText(txt, f.x, f.y);
     }
     var dataUrl = canvas.toDataURL('image/png');
