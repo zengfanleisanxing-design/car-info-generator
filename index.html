@@ -172,7 +172,7 @@ var fields = [
   { id:'f_series', label:'车系', x:99, y:127, text:'', fontSize:26, fontWeight:'900', color:'#353535', fontFamily:'MSYaHeiBold' },
   { id:'f_model',  label:'车型', x:316, y:127, text:'', fontSize:26, fontWeight:'900', color:'#353535', fontFamily:'MSYaHeiBold', toUpper:true },
   { id:'f_year',   label:'年款', x:509, y:127, text:'', fontSize:26, fontWeight:'900', color:'#353535', fontFamily:'MSYaHeiBold' },
-  { id:'f_vin',    label:'VIN',  x:910, y:903, text:'', fontSize:31, fontWeight:'900', color:'#353535', fontFamily:'MSYaHeiBold', onlyAlnum:true, maxLen:17, toUpper:true }
+  { id:'f_vin',    label:'VIN',  x:910, y:900, text:'', fontSize:31, fontWeight:'900', color:'#353535', fontFamily:'MSYaHeiBold', onlyAlnum:true, maxLen:17, toUpper:true }
 ];
 
 function onFieldInput(id, el) {
@@ -355,7 +355,12 @@ function exportImage() {
       ctx.fillStyle = f.color;
       ctx.font = '900 ' + f.fontSize + 'px "' + f.fontFamily + '", "PingFang SC-Semibold", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif';
       ctx.textBaseline = 'top';
-      ctx.fillText(f.toUpper ? f.text.toUpperCase() : f.text, f.x, f.y);
+      ctx.lineWidth = Math.max(1, Math.round(f.fontSize / 18));
+      ctx.strokeStyle = f.color;
+      ctx.lineJoin = 'round';
+      var txt = f.toUpper ? f.text.toUpperCase() : f.text;
+      ctx.strokeText(txt, f.x, f.y);
+      ctx.fillText(txt, f.x, f.y);
     }
     var dataUrl = canvas.toDataURL('image/png');
     var link = document.createElement('a');
