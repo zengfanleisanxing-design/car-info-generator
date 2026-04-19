@@ -353,7 +353,7 @@ function exportImage() {
     for (var i = 0; i < fields.length; i++) {
       var f = fields[i];
       ctx.fillStyle = f.color;
-      ctx.font = f.fontWeight + ' ' + f.fontSize + 'px "' + f.fontFamily + '", "PingFang SC", "Noto Sans SC", Arial, sans-serif';
+      ctx.font = '900 ' + f.fontSize + 'px "' + f.fontFamily + '", "PingFang SC-Semibold", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif';
       ctx.textBaseline = 'top';
       ctx.fillText(f.toUpper ? f.text.toUpperCase() : f.text, f.x, f.y);
     }
